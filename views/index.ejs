@@ -4,15 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Chess Master</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .chessboard {
             display: grid;
             grid-template-columns: repeat(8, minmax(0, 1fr));
             grid-template-rows: repeat(8, minmax(0, 1fr));
-            width: 400px;
-            height: 400px;
+            width: 100%;
+            max-width: 600px;
+            margin: auto;
+            aspect-ratio: 1/1;
             transform: rotate(0deg);
         }
 
@@ -44,7 +46,7 @@
         }
 
         .piece {
-            font-size: 36px;
+            font-size: clamp(24px, 5vw, 48px);
             cursor: pointer;
         }
 
@@ -56,21 +58,73 @@
             opacity: 0.5;
         }
 
-        /* Rotate pieces for black player */
         .flipped .piece {
             transform: rotate(180deg);
+        }
+        
+        .legal-move-dot {
+            width: 20px;
+            height: 20px;
+            background-color: rgba(0, 255, 0, 0.3);
+            border-radius: 50%;
+        }
+        
+        .last-move-highlight {
+            background-color: rgba(255, 255, 0, 0.5);
+        }
+
+        .check {
+            background-color: rgba(255, 0, 0, 0.5);
         }
     </style>
 </head>
 
-<body>
-    <div class="w-full h-screen bg-zinc-900 flex items-center justify-center">
-        <div class="chessboard w-96 h-96 bg-red-800">
-        </div>
-    </div>    
+<body class="bg-gray-900 text-white flex flex-col min-h-screen">
 
-    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js" integrity="sha512-xRllwz2gdZciIB+AkEbeq+gVhX8VB8XsfqeFbUh+SzHlN96dEduwtTuVuc2u9EROlmW9+yhRlxjif66ORpsgVA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <header class="bg-gray-800 shadow-md p-4">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">Chess Master</h1>
+            <div id="room-info" class="text-sm">
+                Room ID: <span id="room-id-display" class="font-mono bg-gray-700 px-2 py-1 rounded"></span>
+                <button id="copy-room-url-btn" class="bg-purple-600 hover:bg-purple-700 px-3 py-1 rounded text-xs ml-2">Copy URL</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto flex-grow flex flex-col md:flex-row items-center justify-center p-4">
+        <div id="game-container" class="w-full md:w-2/3 lg:w-1/2">
+            <div class="chessboard shadow-lg"></div>
+        </div>
+        <div id="game-info" class="w-full md:w-1/3 lg:w-1/4 p-4 md:ml-4 bg-gray-800 rounded-lg shadow-md mt-4 md:mt-0">
+            <h2 class="text-xl font-bold mb-4">Game Info</h2>
+            <div id="player-status" class="mb-4"></div>
+            <div id="turn-info" class="mb-4"></div>
+            <div id="move-history" class="h-64 overflow-y-auto bg-gray-700 p-2 rounded"></div>
+        </div>
+    </main>
+
+    <div id="waiting-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50">
+        <div class="text-center">
+            <h1 class="text-5xl font-bold mb-4">Chess Master</h1>
+            <p id="waiting-text" class="text-xl mb-6">Waiting for opponent...</p>
+            <div class="flex justify-center space-x-4">
+                <button id="create-room-btn" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold">Create Room</button>
+                <button id="share-link-btn" class="bg-green-600 hover:bg-green-700 px-6 py-3 rounded-lg font-semibold" style="display: none;">Share Link</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="game-over-overlay" class="fixed inset-0 bg-black bg-opacity-80 flex flex-col items-center justify-center z-50" style="display: none;">
+        <div class="text-center">
+            <h1 id="game-over-title" class="text-5xl font-bold mb-4"></h1>
+            <p id="game-over-message" class="text-xl mb-6"></p>
+            <button id="new-game-btn" class="bg-blue-600 hover:bg-blue-700 px-6 py-3 rounded-lg font-semibold">New Game</button>
+        </div>
+    </div>
+
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="/js/chessgame.js"></script>
 </body>
+
 </html>
